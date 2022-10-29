@@ -23,10 +23,10 @@
 
                             <v-card dark>
                                 <v-card-title>
-                                    {{i.title}}
+                                    {{i.name}}
                                 </v-card-title>
                                 <v-col>
-                                    <p>{{i.desription}}</p>
+                                    <p>{{i.description}}</p>
                                 </v-col>
                             </v-card>
                         </v-col>
@@ -44,10 +44,10 @@
 
 export default {
     props: ['cards'],
-    data() {
-        return {
+    // data() {
+    //     return {
 
-        }
-    }
+    //     }
+    // }
 }
 </script>
