@@ -2,24 +2,14 @@
     <v-app>
         <v-container fluid class="container">
 
-            <NavComponent
+            <TableComponent
+                :cards="cards"
                 @dialog="dialog = true"
                 @clearCards="clearCards"
                 @searchCard="searchCard"
+                @editCard="editCard"
+                @deleteCard="deleteCard"
             />
-            <TimeLineComponent
-                v-if="cards.length !== 0"
-                :cards="cards"
-            />
-
-            <v-alert
-                v-else
-                type="info"
-                border="bottom"
-                dark
-                colored-border
-                color="yellow"
-            >Записей нет !</v-alert>
 
             <v-dialog
                 v-model="dialog"
@@ -66,7 +56,7 @@
                                 </v-btn>
                             </v-col>
                             <v-col cols="2">
-                                <v-btn dark>
+                                <v-btn dark @click="clear">
                                     <v-icon color="yellow">mdi-reload</v-icon>
                                 </v-btn>
                             </v-col>
@@ -105,14 +95,10 @@
 </template>
 
 <script>
-import TimeLineComponent from '@/components/TimeLineComponent.vue'
-import NavComponent from '@/components/NavComponent.vue'
+import TableComponent from '@/components/TableComponent.vue'
 
 export default {
-    components: {
-        TimeLineComponent,
-        NavComponent,
-    },
+    components: { TableComponent },
 
     data() {
         return {
@@ -126,41 +112,57 @@ export default {
             min: 0,
             sec: 0,
             interval: 0,
-            card_index: null
-        }
-    },
-
-    watch: {
-        dialog() {
-            if (!this.dialog) {
-                console.log('CLOSE DIALOG')
+            update_form: {
+                name: '',
+                description: '',
+                date: '',
+                time: '',
+                id: ''
             }
         }
     },
 
     methods: {
+        deleteCard(card) {
+            this.cards.forEach((el, index) => {
+                if (el.id === card.id) {
+                    this.cards.splice(index, 1)
+                }
+            })
+        },
+        editCard(card) {
+            this.name = card.name
+            this.description = card.description
+            this.hour = card.time.split('.')[0]
+            this.min = card.time.split('.')[1]
+            this.sec = card.time.split('.')[2]
+
+            this.update_form.name = card.name
+            this.update_form.description = card.description
+            this.update_form.date = card.date
+            this.update_form.time = card.time
+            this.update_form.id = card.id
+
+            this.vs_save = true
+            this.dialog = true
+        },
         saveUpdateCard() {
-            // if (this.vs_save) {
-            //     this.vs_save = false
-            // } else {
-            //     this.vs_save = true
-            // }
             if (!this.vs_save) {
 
                 if(!this.name || !this.description) {
                     Object.keys(this.$refs).forEach(f => {
                         this.$refs[f].validate(true)
                     })
+
+                    console.log(this.$refs)
                     return
                 }
-
-                this.$refs.name.validate(false)
-                this.$refs.description.validate(false)
 
                 let date = new Date()
                 date = ('0' + date.getDate()).slice(-2) + '.' + ('0' + (date.getMonth() + 1)).slice(-2) + '.' + date.getFullYear()
 
                 let data = {
+                    id: Math.random().toString().slice(2),
                     name: this.name,
                     description: this.description,
                     date: date,
@@ -168,17 +170,25 @@ export default {
                 }
 
                 this.cards.push(data)
-                this.cards.reverse()
-
-                this.dialog = false
-
-                this.clear()
-
-                this.setLocalStorage()
 
             } else {
-                alert('2')
+                this.deleteCard(this.update_form)
+
+                let data_update = {
+                    id: this.update_form.id,
+                    name: this.name,
+                    description: this.description,
+                    date: this.update_form.date,
+                    time: this.hour + '.' + this.min + '.' + this.sec
+                }
+
+                this.cards.push(data_update)
             }
+
+            this.cards.reverse()
+            this.dialog = false
+            this.clear()
+            this.setLocalStorage()
         },
         playPause() {
             if (this.vs_play) {
@@ -204,6 +214,8 @@ export default {
             this.sec = 0
             this.vs_save = false
             this.vs_play = false
+            this.$refs.name.reset()
+            this.$refs.description.reset()
         },
         start() {
             this.sec++
@@ -258,13 +270,23 @@ export default {
 }
 </script>
 
-<style>
-@import url('https://fonts.googleapis.com/css2?family=Montserrat&display=swap');
-#app {
-    background: #121212;
-    font-family: 'Montserrat', sans-serif;
-}
-.container {
-    max-width: 700px;
-}
+<style lang="sass">
+@import url('https://fonts.googleapis.com/css2?family=Montserrat&display=swap')
+
+#app
+    background: #121212
+    font-family: 'Montserrat', sans-serif
+
+    // ::-webkit-scrollbar
+    //     width: 5px
+
+    // ::-webkit-scrollbar-track
+    //     background-color: none
+
+    // ::-webkit-scrollbar-thumb
+    //     background: white
+    //     border-radius: 5px
+
+    .container
+        max-width: 700px
 </style>
