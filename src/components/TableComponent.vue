@@ -3,7 +3,7 @@
         <v-col cols="20">
             <v-data-table
                 dark
-                :headers="table_columns"
+                :headers="tbl_col"
                 :items="cards"
                 :loading="false"
                 no-data-text="Пусто"
@@ -33,6 +33,7 @@
                                 @input="(val) => {
                                     $emit('searchCard', val)
                                 }"
+                                :disabled="cards.length === 0"
                                 prepend-inner-icon="mdi-magnify"
                             />
                         </v-col>
@@ -56,6 +57,7 @@
                                 color="#1F761F"
                                 dark
                                 @click="$emit('clearCards')"
+                                :disabled="cards.length === 0"
                             ><v-icon>mdi-notification-clear-all</v-icon></v-btn>
                         </v-col>
                     </v-row>
@@ -102,34 +104,15 @@
 </template>
 
 <script>
+import { table_columns } from "@/lib/table_col"
+
 export default {
     props: ['cards'],
     data() {
         return {
-            table_columns: [
-                {
-                    key: 1,
-                    text: 'Название',
-                    value: 'name'
-                },
-                {
-                    key: 2,
-                    text: 'Дата',
-                    value: 'date'
-                },
-                {
-                    key: 3,
-                    text: 'Время',
-                    value: 'time'
-                },
-                {
-                    key: 4,
-                    text: '',
-                    value: 'actions'
-                }
-            ],
             page: 1,
-            page_count: 0
+            page_count: 0,
+            tbl_col: table_columns
         }
     }
 }
