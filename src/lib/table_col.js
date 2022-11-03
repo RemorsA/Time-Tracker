@@ -2,7 +2,7 @@ export const table_columns = [
     {
         key: 1,
         text: 'Название',
-        value: 'name'
+        value: 'name',
     },
     {
         key: 2,
@@ -17,6 +17,7 @@ export const table_columns = [
     {
         key: 4,
         text: '',
-        value: 'actions'
+        value: 'actions',
+        sortable: false
     }
 ]

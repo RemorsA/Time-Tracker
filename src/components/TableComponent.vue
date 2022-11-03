@@ -3,18 +3,19 @@
         <v-col cols="20">
             <v-data-table
                 dark
+                hide-default-footer
+                show-expand
+                single-expand
+                no-data-text="Пусто"
+                loading-text="Загрузка"
+                item-key="id"
                 :headers="tbl_col"
                 :items="cards"
                 :loading="false"
-                no-data-text="Пусто"
-                hide-default-footer
-                loading-text="Загрузка"
-                disable-sort
-                show-expand
-                single-expand
                 :items-per-page="10"
-                item-key="id"
                 :page.sync="page"
+                :sort-by="['name']"
+                :sort-desc="['true']"
                 @page-count="page_count = $event"
             >
                 <template v-slot:top>
