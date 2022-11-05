@@ -4,20 +4,22 @@
 
             <TableComponent
                 :cards="cards"
-                @dialog="dialog = true"
+                @dialog="openDialog"
                 @editCard="editCard"
                 @searchCard="searchCard"
-                @clearCards="dialogAlertAction('clear')"
-                @deleteCard="dialogAlertAction"
+                @clearCards="showAlertClear"
+                @deleteCard="showAlertDelete"
             />
 
             <DialogComponent
                 :dialog="dialog"
                 :vs_save="vs_save"
-                :update_form="update_form"
-                @closeDialog="dialog = false"
-                @saveCard="saveCard"
-                @updateCard="updateCard"
+                :vs_play="vs_play"
+                :form="form"
+                
+                @closeDialog="closeDialog"
+                @saveUpdateCard="saveUpdateCard"
+                @playPause="playPause"
             />
 
             <DialogAlertComponent
@@ -42,7 +44,8 @@
 import TableComponent from '@/components/TableComponent.vue'
 import DialogComponent from '@/components/DialogComponent.vue'
 import DialogAlertComponent from '@/components/DialogAlertComponent.vue'
-import { getDefaultTitle, setLocalStorage, getLocalStorage } from '@/lib/scripts'
+import { getDefaultTitle, setLocalStorage, getLocalStorage, parseDate } from '@/lib/scripts'
+import { form } from "@/lib/form"
 
 export default {
     components: {
@@ -54,15 +57,18 @@ export default {
     data() {
         return {
             dialog: false,
+            vs_save: false,
+            vs_play: false,
+            cards: [],
+            interval: 0,
+            form: new form(),
+
             dialog_alert_form: {
                 dialog_alert: false,
                 message: '',
                 mode: '',
                 item: {}
             },
-            vs_save: false,
-            cards: [],
-            update_form: {},
             response: {
                 message: 'Запись редактированна',
                 show: false,
@@ -72,72 +78,61 @@ export default {
     },
 
     methods: {
-        showAlert(message, show, type) {
-            this.response.show = show
-            this.response.message = message
-            this.response.type = type
+// SAVE UPDATE //
+        saveUpdateCard() {
+            if (!this.vs_save) {
+                this.form.date = parseDate(this.form.date)
+                this.cards.push(this.form)
 
-            setTimeout(() => {
-                this.response.show = false
-            }, 3000)
-        },
-        saveCard(save) {
-            this.cards.push(save)
-            this.dialog = false
+                this.showAlert(
+                    'Запись добавлена',
+                    true,
+                    'success'
+                )
+            } else {
+                this.spliceCard(this.form)
+                this.cards.push(this.form)
 
-            this.showAlert(
-                'Запись добавлена',
-                true,
-                'success'
-            )
+                this.showAlert(
+                    'Запись редактированна',
+                    true,
+                    'success'
+                )
+            }
+
             setLocalStorage(this.cards)
-        },
-        async updateCard(update) {
-            await this.spliceCard(update).then((resp) => {
-                if (resp) 
-                    this.cards.push(update),
-                    this.showAlert(
-                        'Запись отредактированна',
-                        true,
-                        'success'
-                    ),
-                    setLocalStorage(this.cards)
-
-                else 
-                    this.showAlert(
-                        'Ошибка, редактировать запись не удалось',
-                        true,
-                        'warning'
-                    )
-            })
-
             this.dialog = false
-            this.vs_save = false
+            this.clear()
         },
         editCard(card) {
-            this.update_form = card
+            this.form.setFormData(card)
+
             this.vs_save = true
             this.dialog = true
         },
-        async spliceCard(item) {
-            try {
-                this.cards.forEach((el, index) => {
-                    if (el.id === item.id) {
-                        this.cards.splice(index, 1)
-                    }
-                })
-                setLocalStorage(this.cards)
 
-                return true
-            } catch (e) {
-                console.error(e)
-                return false
-            }
+// DELETE CLEAR SPLICE //
+        showAlertDelete(item) {
+            this.dialog_alert_form.dialog_alert = true
+            this.dialog_alert_form.message = 'Вы хотите удалить запись?'
+            this.dialog_alert_form.mode = 'delete'
+            this.dialog_alert_form.item = item
+        },
+        showAlertClear() {
+            this.dialog_alert_form.dialog_alert = true
+            this.dialog_alert_form.message = 'Вы хотите очистить записи?'
+            this.dialog_alert_form.mode = 'clear'
         },
         clearCards() {
             this.cards = []
             setLocalStorage(this.cards)
             this.dialog_alert_form.dialog_alert = false
+
+            this.showAlert(
+                'Все записи удалены',
+                true,
+                'success'
+            )
         },
         async deleteCard(item) {
             await this.spliceCard(item).then((resp) => {
@@ -156,6 +151,41 @@ export default {
             })
             this.dialog_alert_form.dialog_alert = false
         },
+        async spliceCard(item) {
+            try {
+                this.cards.forEach((el, index) => {
+                    if (el.id === item.id) {
+                        this.cards.splice(index, 1)
+                    }
+                })
+                setLocalStorage(this.cards)
+
+                return true
+            } catch (e) {
+                console.error(e)
+                return false
+            }
+        },
+        clear() {
+            getDefaultTitle()
+            clearInterval(this.interval)
+            this.form = new form()
+
+            this.vs_save = false
+            this.vs_play = false
+        },
+
+// OPEN CLOSE //
+        closeDialog() {
+            this.dialog = false
+            this.clear()
+        },
+        openDialog() {
+            this.form = new form()
+            this.dialog = true
+        },
+
+// ACTIONS // 
         searchCard(value) {
             if (value) {
                 this.cards = getLocalStorage()
@@ -166,17 +196,42 @@ export default {
                 this.cards = getLocalStorage()
             }
         },
-        dialogAlertAction(data) {
-            this.dialog_alert_form.dialog_alert = true
 
-            if (data === 'clear')
-                this.dialog_alert_form.message = 'Вы хотите очистить записи?'
-                this.dialog_alert_form.mode = data
-            if (typeof data === 'object')
-                this.dialog_alert_form.message = 'Вы хотите удалить запись?'
-                this.dialog_alert_form.item = data
-                this.dialog_alert_form.mode = 'delete'
-        }
+// ALERT //
+        showAlert(message, show, type) {
+            this.response.show = show
+            this.response.message = message
+            this.response.type = type
+
+            setTimeout(() => {
+                this.response.show = false
+            }, 3000)
+        },
+
+// TIME //
+        playPause() {
+            if (this.vs_play) {
+                this.vs_play = false
+                clearInterval(this.interval)
+                getDefaultTitle()
+            } else {
+                this.vs_play = true
+                this.interval = setInterval(this.start, 1000)
+            }
+        },
+        start() {
+            this.form.sec++;
+            if (this.form.sec >= 60) {
+                this.form.min++;
+                this.form.sec = this.form.sec - 60;
+            }
+            if (this.form.min >= 60) {
+                this.form.hour++;
+                this.form.min = this.form.min - 60;
+            }
+
+            document.title = this.form.hour + ':' + this.form.min + ':' + this.form.sec
+        },
     },
 
     created() {
