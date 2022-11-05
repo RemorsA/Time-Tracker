@@ -111,7 +111,7 @@
 </template>
 
 <script>
-import { table_columns } from "@/lib/table_col"
+import { table_columns } from "@/lib/form"
 
 export default {
     props: ['cards'],

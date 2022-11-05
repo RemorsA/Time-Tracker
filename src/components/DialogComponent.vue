@@ -95,13 +95,16 @@ export default {
                 return
             }
 
+            this.clearValid()
             this.$emit('saveUpdateCard')
         },
         validateClear() {
-            this.$refs.name.reset()
-            this.$refs.description.reset()
-
+            this.clearValid()
             this.$emit('closeDialog')
+        },
+        clearValid() {
+            this.$refs.name.resetValidation()
+            this.$refs.description.resetValidation()
         }
     }
 }

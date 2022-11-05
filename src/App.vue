@@ -16,7 +16,6 @@
                 :vs_save="vs_save"
                 :vs_play="vs_play"
                 :form="form"
-                
                 @closeDialog="closeDialog"
                 @saveUpdateCard="saveUpdateCard"
                 @playPause="playPause"
@@ -220,14 +219,14 @@ export default {
             }
         },
         start() {
-            this.form.sec++;
+            this.form.sec++
             if (this.form.sec >= 60) {
-                this.form.min++;
-                this.form.sec = this.form.sec - 60;
+                this.form.min++
+                this.form.sec = this.form.sec - 60
             }
             if (this.form.min >= 60) {
-                this.form.hour++;
-                this.form.min = this.form.min - 60;
+                this.form.hour++
+                this.form.min = this.form.min - 60
             }
 
             document.title = this.form.hour + ':' + this.form.min + ':' + this.form.sec
