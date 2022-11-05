@@ -90,6 +90,12 @@
                     >mdi-delete</v-icon>
                 </template>
 
+                <template v-slot:item.time="{ item }">
+                    {{ item.hour }}.ч
+                    {{ item.min }}.м
+                    {{ item.sec }}.с
+                </template>
+
             </v-data-table>
 
             <v-col>
